@@ -1,0 +1,1 @@
+strace -f -e write -p1403 2>&1 | grep --color "\".*\""
