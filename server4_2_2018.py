@@ -133,8 +133,9 @@ def receive(forward):
                  print('Motor 2:',motor[2],'Motor 3:',motor[3],'Motor 4:',motor[4],'Motor 5:',motor[5])
                  received = True
               elif info[0] == 0xE6: # Arduino 1
-                 depth = struct.unpack('h',serialTemp.read(2))
+                 depth = struct.unpack('h',serialTemp.read(2).decode("utf-8"))
                  print('depth:',depth)
+
                  a1Bool[0] = True
                  received = True
               elif info[0] == 0xE7: # Arduino 1
@@ -250,7 +251,6 @@ if __name__ == "__main__":
 ##         serialMap[0].write(bytearray([0xFA,0xFB,0xFE]))
 ##         serialMap[1].write(bytearray([0xFC,0xFD,0xFF]))
 ##         curTime = tempTime
-      # check serial status
       ##path
       send(ctl.getDepth())
       receive(ctl.getDepth())
