@@ -114,32 +114,32 @@ def receive(forward):
                        print("Serial No:",sNum+1," Port:",serialMap[sNum].port,"is online")
                     serialStatus[sNum] = True
               elif info[0] == 0xE3: # Arduino 1
-                 motor[0] = struct.unpack('h',serialTemp.read(2))
-                 motor[1] = struct.unpack('h',serialTemp.read(2))
+                 motor[0] = struct.unpack('h',serialTemp.read(2))[0]
+                 motor[1] = struct.unpack('h',serialTemp.read(2))[0]
                  motorValue[0] = True
                  print('Motor 0:',motor[0],'Motor 1:', motor[1])
                  received = True
               elif info[0] == 0xE4: # Arduino 2
-                 yaw = struct.unpack('h',serialTemp.read(2))
+                 yaw = struct.unpack('h',serialTemp.read(2))[0]
                  a1Bool[1] = True
                  print('Yaw is:',yaw)
                  received = True
               elif info[0] == 0xE5: # Arduino 2
-                 motor[2] = struct.unpack('h',serialTemp.read(2))
-                 motor[3] = struct.unpack('h',serialTemp.read(2))
-                 motor[4] = struct.unpack('h',serialTemp.read(2))
-                 motor[5] = struct.unpack('h',serialTemp.read(2))
+                 motor[2] = struct.unpack('h',serialTemp.read(2))[0]
+                 motor[3] = struct.unpack('h',serialTemp.read(2))[0]
+                 motor[4] = struct.unpack('h',serialTemp.read(2))[0]
+                 motor[5] = struct.unpack('h',serialTemp.read(2))[0]
                  motorValue[1] = True
                  print('Motor 2:',motor[2],'Motor 3:',motor[3],'Motor 4:',motor[4],'Motor 5:',motor[5])
                  received = True
               elif info[0] == 0xE6: # Arduino 1
-                 depth = struct.unpack('h',serialTemp.read(2).decode("utf-8"))
+                 depth = struct.unpack('h',serialTemp.read(2))[0]
                  print('depth:',depth)
 
                  a1Bool[0] = True
                  received = True
               elif info[0] == 0xE7: # Arduino 1
-                 yawSetPoint = struct.unpack('h',serialTemp.read(2))
+                 yawSetPoint = struct.unpack('h',serialTemp.read(2))[0]
                  print('Yaw Value:',yawSetPoint)
                  received = True
         except serial.serialutil.SerialException:
