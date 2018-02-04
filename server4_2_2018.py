@@ -73,7 +73,7 @@ def send(forward):
     try:
        if(forward[0] in ctl.sendToArduino0):
           writeTo = 0
-          serialMap[0].write(bytes(forward))     
+          serialMap[0].write(bytes(forward))
        elif(forward[0] in ctl.sendToArduino1):
           writeTo = 1
           serialMap[1].write(bytes(forward))
@@ -88,7 +88,7 @@ def receive(forward):
     # Serial Read loop
     received = False
     if(forward[0] in ctl.sendToArduino0):
-                    receivedFrom = 0     
+                    receivedFrom = 0
     elif(forward[0] in ctl.sendToArduino1):
         receivedFrom = 1
     while not (received):
@@ -135,7 +135,6 @@ def receive(forward):
               elif info[0] == 0xE6: # Arduino 1
                  depth = struct.unpack('h',serialTemp.read(2))[0]
                  print('depth:',depth)
-
                  a1Bool[0] = True
                  received = True
               elif info[0] == 0xE7: # Arduino 1
@@ -151,9 +150,9 @@ def receive(forward):
         serialTemp.read(serialTemp.inWaiting())
     elif((serialTemp.inWaiting() <= 2) and not received):
         send(forward)
-       
+
       # check serial status
-    
+
 if __name__ == "__main__":
    # write strace shell file
    traceFile = open("trace.sh","w")
@@ -171,12 +170,6 @@ if __name__ == "__main__":
    serialNo[1] = serialReconnect('/dev/ttyUSB1')
    serialNo[2] = serialReconnect('/dev/ttyUSB2')
    # serialNo[3] = serialReconnect('/dev/ttyUSB3')
-   # write command for serial mapping
-##   serialNo[0].write(command)
-##   serialNo[1].write(command)
-##   serialNo[2].write(command)
-##   serialNo[3].write(command)
-
    # serial mapping before main loop
    while 1:
       # for serial mapping
@@ -213,7 +206,7 @@ if __name__ == "__main__":
                   serialStatus[2] = True
 ##                  serialMapped[i] = True
                   serialName[2] = serialMap[2].port
-                  # try to write to client      
+                  # try to write to client
          except serial.serialutil.SerialException:
             print("Serial Error Occur, Port: ",i)
             name = '/dev/ttyUSB'+str(i)
@@ -223,15 +216,8 @@ if __name__ == "__main__":
       #if(serialStatus[0] and serialStatus[1] and serialStatus[2] and serialStatus[3]):
       if(serialStatus[0] and serialStatus[1]):
          print('All Arduino is ready')
-##      #---For Debugging---
-##      print(serialStatus[1])
-##      time.sleep(3)
-##      if(serialStatus[1] and serialStatus[0]):
          break
-##   print(serialMap)
-##   print(serialName)
-            
-      
+
    #--------------------------------Main loop
    serialTemp = serial.Serial() # temp varible for reconnection
    curTime = int(round(time.time()*1000))
@@ -243,7 +229,7 @@ if __name__ == "__main__":
    pbool = False
    sendPID = FalseserialTemp = serial.Serial() # temp varible for reconnection
    curTime = int(round(time.time()*1000))
-   
+
    while 1:
       # Timer for request PID return
 ##      tempTime = int(round(time.time()*1000))
