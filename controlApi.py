@@ -11,7 +11,9 @@ setDepthByte = [0xA1] # short depth_setPoint [3 bytes]	(depth unit : cm)
 
 setDepthPidOnByte = [0xAB]
 
-getDepthValueByte = [0xAC]
+calDepthByte = [0xAC]
+
+setPitchPidOnByte = [0xAD]
 
 getThruster2Byte = [0xFB]
 
@@ -31,7 +33,7 @@ getThruster4Byte = [0xFD]
 
 getYawValueBtye = [0xFF]
 
-sendToArduino0 = [0xA1,0xAB,0xAC,0xFB,0xFE]
+sendToArduino0 = [0xA1,0xAB,0xAC,0xAD,0xFB,0xFE]
 sendToArduino1 = [0xB1,0xB3,0xB7,0xFC,0xFD,0xFF]
 
 def move(angle,magnitude):
@@ -52,13 +54,20 @@ def setDepth(depth):
 def setDepthPidOn(depthPidIsOn):
     command = []
     command += bytearray(setDepthPidOnByte)
-    command += struct.pack('?',depthPidIsOn)
+    command += bytearray(depthPidIsOn)
     forward = command[0:2]
     print(command)
     return bytes(forward)
 
-def getDepthValue():
-    return bytes(bytearray(getDepthValueByte)) 
+def setPitchPidOn(pitchPidIsOn):
+    command = []
+    command += bytearray(setPitchPidOnByte)
+    command += bytearray(pitchPidIsOn)
+    forward = command[0:2]
+    return bytes(forward)
+
+def calDepth():
+    return bytes(bytearray(calDepthByte)) 
 
 def getDepth():
     return bytes(bytearray(getDepthBtye))
