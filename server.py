@@ -10,7 +10,7 @@ import threading
 import time
 import os
 import random, sys
-import controlApi as ctl
+import controlApi as c
 
 MAX_RECV = 4096 # Maximum Data Receive Length
 # Server Information
@@ -68,91 +68,6 @@ def serialDisable(sNum,portName):
          serialMap[i] = None #have to check if serial.Serial() or None is better
          serialName[i] = portName
 
-def send(forward):
-    writeTo = -1
-    try:
-       if(forward[0] in ctl.sendToArduino0):
-          writeTo = 0
-          serialMap[0].write(bytes(forward))
-       elif(forward[0] in ctl.sendToArduino1):
-          writeTo = 1
-          serialMap[1].write(bytes(forward))
-    except serial.serialutil.SerialException:
-       if (writeTo != -1):
-           print("Serial ",writeTo," Port:",serialName[writeTo]," is disconnected")
-           serialStatus[writeTo] = False
-           serialTemp = serialReconnect(serialName[writeTo])
-           serialTemp.write(command)
-
-def receive(forward):
-    # Serial Read loop
-    received = False
-    if(forward[0] in ctl.sendToArduino0):
-                    receivedFrom = 0
-    elif(forward[0] in ctl.sendToArduino1):
-        receivedFrom = 1
-    while not (received):
-        serialTemp = serialMap[receivedFrom] # Temp for current Arduino
-        try:
-           otherPort = -1
-           otherPortName = ''
-           if(serialTemp.inWaiting() >= 2):
-              info = serialTemp.read(1)
-              if info[0] == 0xF2:
-                 detail = serialTemp.read(1)
-                 sNum = serialNumber(detail[0])
-                 if(sNum == -1):
-                    print("Connected Arduino does not match the system / Return Data Error, data:",detail[0])
-                 else:
-                    serialMap[sNum] = serialTemp
-                    # if different from orignal port, record and erase another one by serialDisable Function
-                    if(serialName[sNum] != serialMap[sNum].port):
-                       otherPort = sNum
-                       otherPortName = serialName[sNum]
-                    serialName[sNum] = serialMap[sNum].port
-                    if(not serialStatus[sNum]):
-                       print("Serial No:",sNum+1," Port:",serialMap[sNum].port,"is online")
-                    serialStatus[sNum] = True
-              elif info[0] == 0xE3: # Arduino 1
-                 motor[0] = struct.unpack('h',serialTemp.read(2))[0]
-                 motor[1] = struct.unpack('h',serialTemp.read(2))[0]
-                 motorValue[0] = True
-                 print('Motor 0:',motor[0],'Motor 1:', motor[1])
-                 received = True
-              elif info[0] == 0xE4: # Arduino 2
-                 yaw = struct.unpack('h',serialTemp.read(2))[0]
-                 a1Bool[1] = True
-                 print('Yaw is:',yaw)
-                 received = True
-              elif info[0] == 0xE5: # Arduino 2
-                 motor[2] = struct.unpack('h',serialTemp.read(2))[0]
-                 motor[3] = struct.unpack('h',serialTemp.read(2))[0]
-                 motor[4] = struct.unpack('h',serialTemp.read(2))[0]
-                 motor[5] = struct.unpack('h',serialTemp.read(2))[0]
-                 motorValue[1] = True
-                 print('Motor 2:',motor[2],'Motor 3:',motor[3],'Motor 4:',motor[4],'Motor 5:',motor[5])
-                 received = True
-              elif info[0] == 0xE6: # Arduino 1
-                 depth = struct.unpack('h',serialTemp.read(2))[0]
-                 print('depth:',depth)
-                 a1Bool[0] = True
-                 received = True
-              elif info[0] == 0xE7: # Arduino 1
-                 yawSetPoint = struct.unpack('h',serialTemp.read(2))[0]
-                 print('Yaw Value:',yawSetPoint)
-                 received = True
-        except serial.serialutil.SerialException:
-            print("Serial Error Occur, Port: ",writeTo)
-            serialTemp = serialReconnect(serialName[writeTo])
-            serialTemp.write(command)
-    serialDisable(otherPort,otherPortName)
-    if((serialTemp.inWaiting() >= 2) and received):
-        serialTemp.read(serialTemp.inWaiting())
-    elif((serialTemp.inWaiting() <= 2) and not received):
-        send(forward)
-
-      # check serial status
-
 if __name__ == "__main__":
    # write strace shell file
    traceFile = open("trace.sh","w")
@@ -179,9 +94,6 @@ if __name__ == "__main__":
       # serialNo[3].write(command)
       for i in range(3):
          try:
-##            if(serialMapped[i]):
-##               continue
-##            else serialNo[i].write(command)
             print(i,':',serialNo[i].inWaiting())
             if(serialNo[i].inWaiting() >= 2):
                info = serialNo[i].read(1)
@@ -238,43 +150,43 @@ if __name__ == "__main__":
 ##         serialMap[1].write(bytearray([0xFC,0xFD,0xFF]))
 ##         curTime = tempTime
       ##path
-      send(ctl.calDepth())
-      send(ctl.getDepth())
-      receive(ctl.getDepth())
+      c.calDepth()
+      c.getDepth()
+      c.getDepth()
       #time.sleep(5)
-      send(ctl.getThruster2())
-      receive(ctl.getThruster2())
+      c.getThruster2()
+      c.getThruster2()
       #time.sleep(5)
-      send(ctl.getThruster4())
-      receive(ctl.getThruster4())
+      c.getThruster4()
+      c.getThruster4()
       #time.sleep(5)
-      send(ctl.getYaw())
-      receive(ctl.getYaw())
+      c.getYaw()
+      c.getYaw()
       #time.sleep(5)
-      send(ctl.getYawValue())
-      receive(ctl.getYawValue())
-      send(ctl.move(0,0))
+      c.getYawValue()
+      c.getYawValue()
+      c.move(0,0)
       time.sleep(20)
-      send(ctl.setPitchPidOn([0x01]))
-      send(ctl.setDepthPidOn([0x01]))
-      send(ctl.getYaw())
-      receive(ctl.getYaw())
-##      send(ctl.setYaw(yaw))
-##      send(ctl.setYawPidOn([0x01]))
-      send(ctl.setDepth(30))
+      c.setPitchPidOn([0x01])
+      c.setDepthPidOn([0x01])
+      c.getYaw()
+      c.getYaw()
+##      c.setYaw(yaw)
+##      c.setYawPidOn([0x01])
+      c.setDepth(30)
       time.sleep(8)
-      #send(ctl.move(0,60))
+      #c.move(0,60))
       for i in range(15):
-          send(ctl.getThruster4())
-          receive(ctl.getThruster4())
+          c.getThruster4()
+          c.getThruster4()
           time.sleep(1)
-      #send(ctl.move(180,60))
+      #c.move(180,60))
       for i in range(15):
-          send(ctl.getThruster4())
-          receive(ctl.getThruster4())
+          c.getThruster4()
+          c.getThruster4()
           time.sleep(1)
-      send(ctl.move(0,0))
-      send(ctl.setDepthPidOn([0x00]))
-      send(ctl.setPitchPidOn([0x00]))
-##      send(ctl.setYawPidOn([0x00]))
+      c.move(0,0)
+      c.setDepthPidOn([0x00])
+      c.setPitchPidOn([0x00])
+##      c.setYawPidOn([0x00])
       sys.exit('End')
