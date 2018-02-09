@@ -31,6 +31,7 @@ motor = [0,0,0,0,0,0]
 a1Bool = [False,False,False]
 depth = 0
 yaw = 0
+yawSetPoint = 0
 pitch = 0
 row = 0
 
@@ -113,6 +114,14 @@ def receive(forward):
                     if(not serialStatus[sNum]):
                        print("Serial No:",sNum+1," Port:",serialMap[sNum].port,"is online")
                     serialStatus[sNum] = True
+              elif info[0] == 0xE2: # Arduino 1
+                 global pitch
+                 pitch = struct.unpack('h',serialTemp.read(2))[0]
+                 global roll
+                 roll = struct.unpack('h',serialTemp.read(2))[0]
+                 print('Pitch is:',pitch)
+                 print('Roll is:',roll)
+                 received = True
               elif info[0] == 0xE3: # Arduino 1
                  motor[0] = struct.unpack('h',serialTemp.read(2))[0]
                  motor[1] = struct.unpack('h',serialTemp.read(2))[0]
@@ -120,10 +129,12 @@ def receive(forward):
                  print('Motor 0:',motor[0],'Motor 1:', motor[1])
                  received = True
               elif info[0] == 0xE4: # Arduino 2
+                 global yaw
                  yaw = struct.unpack('h',serialTemp.read(2))[0]
                  a1Bool[1] = True
                  print('Yaw is:',yaw)
                  received = True
+                 return yaw
               elif info[0] == 0xE5: # Arduino 2
                  motor[2] = struct.unpack('h',serialTemp.read(2))[0]
                  motor[3] = struct.unpack('h',serialTemp.read(2))[0]
@@ -133,6 +144,7 @@ def receive(forward):
                  print('Motor 2:',motor[2],'Motor 3:',motor[3],'Motor 4:',motor[4],'Motor 5:',motor[5])
                  received = True
               elif info[0] == 0xE6: # Arduino 1
+                 global depth
                  depth = struct.unpack('h',serialTemp.read(2))[0]
                  print('depth:',depth)
                  a1Bool[0] = True
@@ -230,7 +242,7 @@ if __name__ == "__main__":
    sendPID = FalseserialTemp = serial.Serial() # temp varible for reconnection
    curTime = int(round(time.time()*1000))
 
-   while 1:
+   while(1):
       # Timer for request PID return
 ##      tempTime = int(round(time.time()*1000))
 ##      if (tempTime - curTime) >= 500:
@@ -238,43 +250,43 @@ if __name__ == "__main__":
 ##         serialMap[1].write(bytearray([0xFC,0xFD,0xFF]))
 ##         curTime = tempTime
       ##path
+      send(ctl.move(0,0))
+      time.sleep(20)
       send(ctl.calDepth())
       send(ctl.getDepth())
       receive(ctl.getDepth())
-      #time.sleep(5)
-      send(ctl.getThruster2())
-      receive(ctl.getThruster2())
-      #time.sleep(5)
-      send(ctl.getThruster4())
-      receive(ctl.getThruster4())
-      #time.sleep(5)
       send(ctl.getYaw())
       receive(ctl.getYaw())
-      #time.sleep(5)
-      send(ctl.getYawValue())
-      receive(ctl.getYawValue())
+      time.sleep(2)
+      send(ctl.setYaw(yaw))
+      send(ctl.setYawPidOn(1))
+      send(ctl.setDepthPidOn(1))
+      send(ctl.getPitchRoll())
+      receive(ctl.getPitchRoll())
+      send(ctl.setPitchPidOn(1))
+      time.sleep(10)
+      tempPitch = pitch
+      send(ctl.calDepth())
+      send(ctl.getDepth())
+      receive(ctl.getDepth())
+      for i in range(30):
+          send(ctl.setDepth(depth+i))
+          send(ctl.getPitchRoll())
+          receive(ctl.getPitchRoll())
+          time.sleep(0.5)
+      time.sleep(10)
+##      send(ctl.move(0,70))
+##      time.sleep(10)
+##      send(ctl.move(180,70))
+##      time.sleep(10)
+      send(ctl.getDepth())
+      receive(ctl.getDepth())
+      send(ctl.getPitchRoll())
+      receive(ctl.getPitchRoll())
       send(ctl.move(0,0))
-      time.sleep(20)
-      send(ctl.setPitchPidOn([0x01]))
-      send(ctl.setDepthPidOn([0x01]))
-      send(ctl.getYaw())
-      receive(ctl.getYaw())
-##      send(ctl.setYaw(yaw))
-##      send(ctl.setYawPidOn([0x01]))
-      send(ctl.setDepth(30))
-      time.sleep(8)
-      #send(ctl.move(0,60))
-      for i in range(15):
-          send(ctl.getThruster4())
-          receive(ctl.getThruster4())
-          time.sleep(1)
-      #send(ctl.move(180,60))
-      for i in range(15):
-          send(ctl.getThruster4())
-          receive(ctl.getThruster4())
-          time.sleep(1)
-      send(ctl.move(0,0))
-      send(ctl.setDepthPidOn([0x00]))
-      send(ctl.setPitchPidOn([0x00]))
-##      send(ctl.setYawPidOn([0x00]))
+      send(ctl.setDepthPidOn(0))
+      send(ctl.setPitchPidOn(0))
+      time.sleep(1)
+      send(ctl.setYawPidOn(0))
+      time.sleep(10)
       sys.exit('End')
