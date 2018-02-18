@@ -1,1 +1,0 @@
-strace -f -e write -p1596 2>&1 | grep --color "\".*\""

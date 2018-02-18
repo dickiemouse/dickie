@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 
-img = cv2.imread('drums.jpg')
+img = cv2.imread('main_replastering.jpg')
 
 def draw_image_histogram(image, channels, color='k'):
     hist = cv2.calcHist([image], channels, None, [256], [0, 256])
@@ -70,6 +70,7 @@ def show_hsv_equalized(image):
     eq_image = cv2.cvtColor(cv2.merge([H, S, eq_V]), cv2.COLOR_HSV2RGB)
     plt.imshow(eq_image)
     plt.show()
+show_hsv_equalized(img)
 
 img_y_cr_cb = cv2.cvtColor(img, cv2.COLOR_BGR2YCrCb)
 y, cr, cb = cv2.split(img_y_cr_cb)
