@@ -31,6 +31,7 @@ motor = [0,0,0,0,0,0]
 a1Bool = [False,False,False]
 depth = 0
 yaw = 0
+yawSetPoint = 0
 pitch = 0
 row = 0
 
@@ -73,7 +74,7 @@ def send(forward):
     try:
        if(forward[0] in ctl.sendToArduino0):
           writeTo = 0
-          serialMap[0].write(bytes(forward))     
+          serialMap[0].write(bytes(forward))
        elif(forward[0] in ctl.sendToArduino1):
           writeTo = 1
           serialMap[1].write(bytes(forward))
@@ -88,7 +89,7 @@ def receive(forward):
     # Serial Read loop
     received = False
     if(forward[0] in ctl.sendToArduino0):
-                    receivedFrom = 0     
+                    receivedFrom = 0
     elif(forward[0] in ctl.sendToArduino1):
         receivedFrom = 1
     while not (received):
@@ -113,33 +114,43 @@ def receive(forward):
                     if(not serialStatus[sNum]):
                        print("Serial No:",sNum+1," Port:",serialMap[sNum].port,"is online")
                     serialStatus[sNum] = True
+              elif info[0] == 0xE2: # Arduino 1
+                 global pitch
+                 pitch = struct.unpack('h',serialTemp.read(2))[0]
+                 global roll
+                 roll = struct.unpack('h',serialTemp.read(2))[0]
+                 print('Pitch is:',pitch)
+                 print('Roll is:',roll)
+                 received = True
               elif info[0] == 0xE3: # Arduino 1
-                 motor[0] = struct.unpack('h',serialTemp.read(2))
-                 motor[1] = struct.unpack('h',serialTemp.read(2))
+                 motor[0] = struct.unpack('h',serialTemp.read(2))[0]
+                 motor[1] = struct.unpack('h',serialTemp.read(2))[0]
                  motorValue[0] = True
                  print('Motor 0:',motor[0],'Motor 1:', motor[1])
                  received = True
               elif info[0] == 0xE4: # Arduino 2
-                 yaw = struct.unpack('h',serialTemp.read(2))
+                 global yaw
+                 yaw = struct.unpack('h',serialTemp.read(2))[0]
                  a1Bool[1] = True
                  print('Yaw is:',yaw)
                  received = True
+                 return yaw
               elif info[0] == 0xE5: # Arduino 2
-                 motor[2] = struct.unpack('h',serialTemp.read(2))
-                 motor[3] = struct.unpack('h',serialTemp.read(2))
-                 motor[4] = struct.unpack('h',serialTemp.read(2))
-                 motor[5] = struct.unpack('h',serialTemp.read(2))
+                 motor[2] = struct.unpack('h',serialTemp.read(2))[0]
+                 motor[3] = struct.unpack('h',serialTemp.read(2))[0]
+                 motor[4] = struct.unpack('h',serialTemp.read(2))[0]
+                 motor[5] = struct.unpack('h',serialTemp.read(2))[0]
                  motorValue[1] = True
                  print('Motor 2:',motor[2],'Motor 3:',motor[3],'Motor 4:',motor[4],'Motor 5:',motor[5])
                  received = True
               elif info[0] == 0xE6: # Arduino 1
-                 depth = struct.unpack('h',serialTemp.read(2).decode("utf-8"))
+                 global depth
+                 depth = struct.unpack('h',serialTemp.read(2))[0]
                  print('depth:',depth)
-
                  a1Bool[0] = True
                  received = True
               elif info[0] == 0xE7: # Arduino 1
-                 yawSetPoint = struct.unpack('h',serialTemp.read(2))
+                 yawSetPoint = struct.unpack('h',serialTemp.read(2))[0]
                  print('Yaw Value:',yawSetPoint)
                  received = True
         except serial.serialutil.SerialException:
@@ -151,9 +162,9 @@ def receive(forward):
         serialTemp.read(serialTemp.inWaiting())
     elif((serialTemp.inWaiting() <= 2) and not received):
         send(forward)
-       
+
       # check serial status
-    
+
 if __name__ == "__main__":
    # write strace shell file
    traceFile = open("trace.sh","w")
@@ -171,12 +182,6 @@ if __name__ == "__main__":
    serialNo[1] = serialReconnect('/dev/ttyUSB1')
    serialNo[2] = serialReconnect('/dev/ttyUSB2')
    # serialNo[3] = serialReconnect('/dev/ttyUSB3')
-   # write command for serial mapping
-##   serialNo[0].write(command)
-##   serialNo[1].write(command)
-##   serialNo[2].write(command)
-##   serialNo[3].write(command)
-
    # serial mapping before main loop
    while 1:
       # for serial mapping
@@ -213,25 +218,18 @@ if __name__ == "__main__":
                   serialStatus[2] = True
 ##                  serialMapped[i] = True
                   serialName[2] = serialMap[2].port
-                  # try to write to client      
+                  # try to write to client
          except serial.serialutil.SerialException:
             print("Serial Error Occur, Port: ",i)
             name = '/dev/ttyUSB'+str(i)
             serialNo[i] = serialReconnect(name)
       print(serialStatus[0],serialStatus[1],serialStatus[2],serialStatus[3])
-      time.sleep(2)
+      time.sleep(1)
       #if(serialStatus[0] and serialStatus[1] and serialStatus[2] and serialStatus[3]):
       if(serialStatus[0] and serialStatus[1]):
          print('All Arduino is ready')
-##      #---For Debugging---
-##      print(serialStatus[1])
-##      time.sleep(3)
-##      if(serialStatus[1] and serialStatus[0]):
          break
-##   print(serialMap)
-##   print(serialName)
-            
-      
+
    #--------------------------------Main loop
    serialTemp = serial.Serial() # temp varible for reconnection
    curTime = int(round(time.time()*1000))
@@ -243,8 +241,8 @@ if __name__ == "__main__":
    pbool = False
    sendPID = FalseserialTemp = serial.Serial() # temp varible for reconnection
    curTime = int(round(time.time()*1000))
-   
-   while 1:
+
+   while(1):
       # Timer for request PID return
 ##      tempTime = int(round(time.time()*1000))
 ##      if (tempTime - curTime) >= 500:
@@ -252,18 +250,43 @@ if __name__ == "__main__":
 ##         serialMap[1].write(bytearray([0xFC,0xFD,0xFF]))
 ##         curTime = tempTime
       ##path
+      send(ctl.move(0,0))
+      time.sleep(20)
+      send(ctl.calDepth())
       send(ctl.getDepth())
       receive(ctl.getDepth())
-      time.sleep(5)
-      send(ctl.getThruster2())
-      receive(ctl.getThruster2())
-      time.sleep(5)
-      send(ctl.getThruster4())
-      receive(ctl.getThruster4())
-      time.sleep(5)
       send(ctl.getYaw())
       receive(ctl.getYaw())
-      time.sleep(5)
-      send(ctl.getYawValue())
-      receive(ctl.getYawValue())
-      time.sleep(5)
+      time.sleep(2)
+      send(ctl.setYaw(yaw))
+      send(ctl.setYawPidOn(1))
+      send(ctl.setDepthPidOn(1))
+      send(ctl.getPitchRoll())
+      receive(ctl.getPitchRoll())
+      send(ctl.setPitchPidOn(1))
+      time.sleep(10)
+      tempPitch = pitch
+      send(ctl.calDepth())
+      send(ctl.getDepth())
+      receive(ctl.getDepth())
+      for i in range(30):
+          send(ctl.setDepth(depth+i))
+          send(ctl.getPitchRoll())
+          receive(ctl.getPitchRoll())
+          time.sleep(0.5)
+      time.sleep(10)
+##      send(ctl.move(0,70))
+##      time.sleep(10)
+##      send(ctl.move(180,70))
+##      time.sleep(10)
+      send(ctl.getDepth())
+      receive(ctl.getDepth())
+      send(ctl.getPitchRoll())
+      receive(ctl.getPitchRoll())
+      send(ctl.move(0,0))
+      send(ctl.setDepthPidOn(0))
+      send(ctl.setPitchPidOn(0))
+      time.sleep(1)
+      send(ctl.setYawPidOn(0))
+      time.sleep(10)
+      sys.exit('End')

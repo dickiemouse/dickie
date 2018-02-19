@@ -9,9 +9,17 @@ import random, os, sys
 
 setDepthByte = [0xA1] # short depth_setPoint [3 bytes]	(depth unit : cm)
 
+setPitchByte = [0xA3]
+
+setRollByte = [0xA5]
+
 setDepthPidOnByte = [0xAB]
 
-getDepthValueByte = [0xAC]
+calDepthByte = [0xAC]
+
+setPitchPidOnByte = [0xAD]
+
+getPitchRollByte = [0xFA]
 
 getThruster2Byte = [0xFB]
 
@@ -21,7 +29,7 @@ getDepthBtye = [0xFE]
 
 moveByte = [0xB1] # short angle + byte magnitude [4 bytes] (angle: From -180 to 180 degree , magnitude : 0 - 255)
 
-setYawBtye = [0xB3]
+setYawByte = [0xB3]
 
 setYawPidOnByte = [0xB7]
 
@@ -31,7 +39,7 @@ getThruster4Byte = [0xFD]
 
 getYawValueBtye = [0xFF]
 
-sendToArduino0 = [0xA1,0xAB,0xAC,0xFB,0xFE]
+sendToArduino0 = [0xA1,0xA3,0xA5,0xAB,0xAC,0xAD,0xFA,0xFB,0xFE]
 sendToArduino1 = [0xB1,0xB3,0xB7,0xFC,0xFD,0xFF]
 
 def move(angle,magnitude):
@@ -48,23 +56,47 @@ def setDepth(depth):
     command += struct.pack('h',int(depth))
     forward = command[0:3]
     return bytes(forward)
+
+def setPitch(pitch):
+    command = []
+    command += bytearray(setPitchByte)
+    command += struct.pack('b',int(pitch))
+    forward = command[0:2]
+    return bytes(forward)
+
+def setRoll(roll):
+    command = []
+    command += bytearray(setRollByte)
+    command += struct.pack('b',int(roll))
+    forward = command[0:2]
+    return bytes(forward)
     
 def setDepthPidOn(depthPidIsOn):
     command = []
     command += bytearray(setDepthPidOnByte)
-    command += struct.pack('?',depthPidIsOn)
+    command += struct.pack('h',int(depthPidIsOn))
     forward = command[0:2]
     print(command)
     return bytes(forward)
 
-def getDepthValue():
-    return bytes(bytearray(getDepthValueByte)) 
+def setPitchPidOn(pitchPidIsOn):
+    command = []
+    command += bytearray(setPitchPidOnByte)
+    command += struct.pack('h',int(pitchPidIsOn))
+    forward = command[0:2]
+    return bytes(forward)
+
+def calDepth():
+    return bytes(bytearray(calDepthByte)) 
 
 def getDepth():
     return bytes(bytearray(getDepthBtye))
 
 def getThruster2():
     return bytes(bytearray(getThruster2Byte))
+
+def getPitchRoll():
+    return bytes(bytearray(getPitchRollByte))
 
 def setYaw(angle):
     command = []
@@ -77,7 +109,7 @@ def setYaw(angle):
 def setYawPidOn(yawPidIsOn):
     command = []
     command += bytearray(setYawPidOnByte)
-    command += struct.pack('?',yawPidIsOn)
+    command += struct.pack('h',int(yawPidIsOn))
     forward = command[0:2]
     print(command)
     return bytes(forward)
